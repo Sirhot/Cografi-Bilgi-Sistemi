@@ -1,0 +1,845 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+typedef struct Komsu
+{
+    int plaka_kodu;
+    char sehir_adi[20];
+    char cografi_bolge[2];
+    struct Komsu *next;
+}node_k;
+typedef struct Sehir
+{
+ int plaka_kodu;
+ char sehir_adi[20];
+ char cografi_bolge[2];
+ int komsu_sayisi;
+ struct Sehir *next;
+ node_k*komsu;
+ node_k*komsutut;
+}node_t;
+void print_list(node_t * head)
+{
+    FILE *cikti;
+    cikti=fopen("cikti.txt","w");
+    node_t * current = head;
+    while (current != NULL)
+    {
+
+        fprintf(cikti,"%d\t", current->plaka_kodu);
+        fprintf(cikti,"%s\t",current->sehir_adi);
+        fprintf(cikti,"%s\t",current->cografi_bolge);
+        fprintf(cikti,"(%d)\t",current->komsu_sayisi);
+        for(int i=0;i<(current->komsu_sayisi);i++)
+        {
+            fprintf(cikti,"%d ",current->komsu->plaka_kodu);
+            current->komsu=current->komsu->next;
+        }
+        fprintf(cikti,"\n");
+        current = current->next;
+        if(current==NULL)
+            break;
+    }
+    fclose(cikti);
+}
+void komsu_ekle(node_t *head,int n,int k_sayi)
+{
+    node_t * current =head;
+    node_t * tmp=head;
+    char a[20];
+    for(int i=0;i<n;i++)
+    {
+        current=current->next;
+    }
+    current->komsutut=current->komsu;
+    for(int i=0;i<current->komsu_sayisi;i++)
+    {
+        current->komsutut=current->komsutut->next;
+    }
+    printf("\n%d adet komsu ekleyebilirsiniz.\n",k_sayi);
+    for(int i=0;i<k_sayi;i++)
+    {
+        c:
+        tmp=head;
+        current->komsutut->next=malloc(sizeof(node_k));
+        printf("\n%d.hakkiniz(Kalan hak:%d):",i+1,k_sayi-(i+1));
+        printf("\nKomsu ekleyeceginiz sehri belirleyiniz(Ilgili sehirle komsuluk olusturulacaktir):");
+        scanf("%s",&a);
+        while(tmp!=NULL)
+        {
+            if(strcmp(tmp->sehir_adi,a)==0)
+            {
+                current->komsutut->plaka_kodu=tmp->plaka_kodu;
+                strcpy(current->komsutut->sehir_adi,tmp->sehir_adi);
+                strcpy(current->komsutut->cografi_bolge,tmp->cografi_bolge);
+                tmp->komsutut=tmp->komsu;
+                for(int j=0;j<tmp->komsu_sayisi;j++)
+                {
+                    tmp->komsutut=tmp->komsutut->next;
+                }
+                tmp->komsutut->next=malloc(sizeof(node_k));
+                tmp->komsutut->plaka_kodu=current->plaka_kodu;
+                strcpy(tmp->komsutut->sehir_adi,current->sehir_adi);
+                strcpy(tmp->komsutut->cografi_bolge,current->cografi_bolge);
+                tmp->komsu_sayisi++;
+                break;
+            }
+            tmp=tmp->next;
+        }
+        if(tmp==NULL)
+        {
+            printf("\nTanimlanmamis sehir adi.\nLutfen baska bir sehir adi giriniz.\n");
+            goto c;
+        }
+        current->komsutut=current->komsutut->next;
+    }
+    current->komsu_sayisi=current->komsu_sayisi+k_sayi;
+}
+void push(node_t * head, int val,char ad[],char bolge[])
+ {
+     node_t * current = head;
+    while (current->next != NULL)
+    {
+        current = current->next;
+    }
+    current->next=malloc(sizeof(node_t));
+    current->plaka_kodu = val;
+    strcpy(current->sehir_adi,ad);
+    strcpy(current->cografi_bolge,bolge);
+    current->komsu_sayisi=0;
+    current->komsu=malloc(sizeof(node_k));
+    current->next= NULL;
+ }
+void pushf(node_t **head, int val,char ad[],char bolge[])
+{
+    node_t * new_node;
+    new_node = (node_t *) malloc(sizeof(node_t));
+    new_node->plaka_kodu = val;
+    new_node->komsu_sayisi=0;
+    strcpy(new_node->sehir_adi,ad);
+    strcpy(new_node->cografi_bolge,bolge);
+    new_node->komsu=malloc(sizeof(node_k));
+    new_node->next = *head;
+    *head = new_node;
+}
+void push_by_index(node_t * head, int val, int n,char ad[],char bolge[])
+{
+    int i = 0;
+    node_t * current = head;
+    node_t * new_node;
+    new_node = malloc(sizeof(node_t));
+    for (i = 0; i < n-1; i++)
+    {
+        current = current->next;
+    }
+    new_node->plaka_kodu = val;
+    new_node->komsu_sayisi=0;
+    new_node->komsu=malloc(sizeof(node_k));
+    strcpy(new_node->sehir_adi,ad);
+    strcpy(new_node->cografi_bolge,bolge);
+    new_node->next = current->next->next;
+    current->next= new_node;
+}
+int pop(node_t ** head)
+{
+    int retval = -1;
+    node_t * next_node = NULL;
+    if (*head == NULL)
+    {
+        return -1;
+    }
+    next_node = (*head)->next;
+    retval = (*head)->plaka_kodu;
+    free(*head);
+    *head = next_node;
+    return retval;
+}
+void remove_komsu(node_t * head,int n,int k)
+{
+    node_t * current =head;
+    for (int i = 0; i < n; i++)
+    {
+        current = current->next;
+    }
+    current->komsutut=current->komsu;
+    for(int i=0;i<current->komsu_sayisi;i++)
+    {
+        if(i==current->komsu_sayisi-1)
+        {
+            current->komsutut=NULL;
+            break;
+        }
+        if(i>=k)
+        {
+            current->komsutut->plaka_kodu=current->komsutut->next->plaka_kodu;
+            strcpy(current->komsutut->sehir_adi,current->komsutut->next->sehir_adi);
+            strcpy(current->komsutut->cografi_bolge,current->komsutut->next->cografi_bolge);
+        }
+        current->komsutut=current->komsutut->next;
+    }
+    current->komsu_sayisi=current->komsu_sayisi-1;
+}
+int remove_by_index(node_t ** head, int n)
+{
+    int i = 0;
+    int retval = -1;
+    node_t * current = *head;
+    node_t * temp_node = NULL;
+    if (n == 0) {
+        return pop(head);
+    }
+    for (i = 0; i < n-1; i++) {
+        if (current->next == NULL)
+        {
+            return -1;
+        }
+        current = current->next;
+    }
+    temp_node = current->next;
+    current->next = temp_node->next;
+    free(temp_node);
+    return retval;
+}
+void plaka_arit(node_t*head)
+{
+    int i = 0;
+    node_t * current = head;
+    node_k * tmp=malloc(sizeof(node_k));
+    node_k * tmp2=malloc(sizeof(node_k));
+    node_k * tmp3=malloc(sizeof(node_k));
+     while(current!=NULL)
+    {
+        current->komsutut=current->komsu;
+        for(i=0;i<current->komsu_sayisi-1;i++)
+        {
+            tmp2=current->komsutut;
+            tmp3=current->komsutut;
+            for(int j=i;j<current->komsu_sayisi;j++)
+            {
+                if(tmp3->plaka_kodu<tmp2->plaka_kodu)
+                {
+                    tmp->plaka_kodu=tmp2->plaka_kodu;
+                    strcpy(tmp->sehir_adi,tmp2->sehir_adi);
+                    strcpy(tmp->cografi_bolge,tmp2->cografi_bolge);
+                    tmp2->plaka_kodu=tmp3->plaka_kodu;
+                    strcpy(tmp2->sehir_adi,tmp3->sehir_adi);
+                    strcpy(tmp2->cografi_bolge,tmp3->cografi_bolge);
+                    tmp3->plaka_kodu=tmp->plaka_kodu;
+                    strcpy(tmp3->sehir_adi,tmp->sehir_adi);
+                    strcpy(tmp3->cografi_bolge,tmp->cografi_bolge);
+                }
+                tmp3=tmp3->next;
+            }
+            current->komsutut=current->komsutut->next;
+        }
+        current=current->next;
+    }
+}
+int main()
+{
+    node_t * head = NULL;
+    head = malloc(sizeof(node_t));
+    node_t * an = head;
+    int secim;
+    char line[200];
+    const char s[2] = ",";
+    const char n[2] ="\n";
+    const char a[2] ="+";
+    const char e[2] ="-";
+    char *token;
+    int plakatut;
+    int ksayitut;
+    int tsayitut=0;
+    char sehir[1000][20];
+    char bolge[1000][3];
+    int plaka[1000];
+    int kontrol=0;
+    int kontrol2=0;
+    int kontrol3=0;
+    char silsehir[100];
+    char silkomsu[100];
+    char silk[1000][20];
+    char aranansehir[100];
+    char aranans[100];
+    char arananbolge[2];
+    char kriter[5];
+    int alt;
+    int ust;
+    char ortakkom[1000][20];
+    int buyukkom;
+    FILE *dosya;
+    dosya=fopen("sehirler.txt","r");
+    while(fgets(line, sizeof(line),dosya))
+    {
+        token = strtok(line, s);
+        plaka[tsayitut]=atoi(token);
+        token = strtok(NULL, s);
+        strcpy(sehir[tsayitut],token);
+        token = strtok(NULL, s);
+        strcpy(bolge[tsayitut],token);
+        tsayitut++;
+    }
+    fseek(dosya,0,SEEK_SET);
+    while(fgets(line, sizeof(line),dosya))
+    {
+        ksayitut=0;
+        token = strtok(line, s);
+        plakatut=atoi(token);
+        an->plaka_kodu=plakatut;
+        token = strtok(NULL, s);
+        strcpy(an->sehir_adi,token);
+        token = strtok(NULL, s);
+        strcpy(an->cografi_bolge,token);
+        an->komsu=malloc(sizeof(node_k));
+        an->komsutut=malloc(sizeof(node_k));
+        while(1)
+        {
+            token = strtok(NULL, s);
+            if(token==NULL)
+                break;
+            if(strchr(token,'\n')!=NULL)
+                {
+                    token=strtok(token,n);
+                }
+            for(int i=0;i<tsayitut;i++)
+            {
+                if(strcmp(token,sehir[i])==0)
+                {
+                    if(ksayitut==0)
+                    {
+                        an->komsu->plaka_kodu=plaka[i];
+                        strcpy(an->komsu->sehir_adi,sehir[i]);
+                        strcpy(an->komsu->cografi_bolge,bolge[i]);
+                        an->komsutut=an->komsu;
+                        continue;
+                    }
+                    an->komsutut->plaka_kodu=plaka[i];
+                    strcpy(an->komsutut->sehir_adi,sehir[i]);
+                    strcpy(an->komsutut->cografi_bolge,bolge[i]);
+                    break;
+                }
+            }
+            ksayitut++;
+            an->komsutut->next=malloc(sizeof(node_k));
+            an->komsutut=an->komsutut->next;
+        }
+        an->komsu_sayisi=ksayitut;
+        an->next= malloc(sizeof(node_t));
+        an=an->next;
+    }
+    plaka_arit(head);
+    an=head;
+    buyukkom=an->komsu_sayisi;
+    for(int i=0;i<tsayitut;i++)
+    {
+        an=an->next;
+        if(buyukkom<an->komsu_sayisi)
+            buyukkom=an->komsu_sayisi;
+    }
+    while (1)
+    {
+        baslangic:
+        printf("\n  _____________________________________ \n");
+        printf(" |                                     |\n");
+        printf(" |  1-SEHIR EKLEME VE KOMSULUK EKLEME  |\n");
+        printf(" |  2-ARAMA YAPMA                      |\n");
+        printf(" |  3-SEHIR VEYA KOMSULUK SILME        |\n");
+        printf(" |  4-BOLGEYE GORE SEHIRLER            |\n");
+        printf(" |  5-KOMSULUK SAYISINA GORE SEHIRLER  |\n");
+        printf(" |  6-BELIRLI ARALIKTA ORTAK KOMSULUK  |\n");
+        printf(" |  7-CIKIS                            |\n");
+        printf(" |_____________________________________|\n");
+        printf("\nSECIM?: ");
+        scanf("%d",&secim);
+        switch(secim)
+        {
+            case 1:
+                an=head;
+                printf("\nKomsu kayidi eklemek icin 1,Sehir eklemek icin 2.\n");
+                scanf("%d",&kontrol);
+                if(kontrol==1)
+                {
+                    printf("\nHangi sehire komsu kayidi ekleyeceginizi ve kac tane eklenecegini belirtiniz.\n");
+                    printf("Hangi sehir:");
+                    scanf("%s",&aranans);
+                    printf("Kac komsu:");
+                    scanf("%d",&ksayitut);
+                    for(kontrol=0;kontrol<tsayitut;kontrol++)
+                    {
+                        if(strcmp(aranans,an->sehir_adi)==0)
+                        {
+                            printf("%s",an->sehir_adi);
+                            break;
+                        }
+                        an=an->next;
+                    }
+                    if(kontrol==tsayitut)
+                    {
+                        printf("\nKomsu eklenecek sehir mevcut degil.\n");
+                        break;
+                    }
+                    komsu_ekle(head,kontrol,ksayitut);
+                }
+                if(kontrol==2)
+                {
+                    printf("\nEkleyeceginiz sehirin sirasiyla bilgilerini(plaka kodu-ad-bolge-komsu sayisi) belirtiniz.\n");
+                    printf("\nPlaka kodu:");
+                    scanf("%d",&plakatut);
+                    printf("\nSehir adi:");
+                    scanf("%s",&aranansehir);
+                    printf("\nCografi bolge:");
+                    scanf("%s",&arananbolge);
+                    for(kontrol=0;kontrol<tsayitut;kontrol++)
+                    {
+                        if(strcmp(aranansehir,an->sehir_adi)==0)
+                        {
+                            printf("Eklenecek sehir adi zaten mevcut.\n");
+                            break;
+                        }
+                        if(plakatut==an->plaka_kodu)
+                        {
+                            printf("Eklenecek plaka kodu zaten mevcut.\n");
+                            break;
+                        }
+                        an=an->next;
+                    }
+                    an=head;
+                    if(kontrol==tsayitut)
+                    {
+                        for(kontrol2=0;kontrol2<tsayitut;kontrol2++)
+                        {
+                            if(plakatut<an->plaka_kodu)
+                            {
+                                break;
+                            }
+                            an=an->next;
+                        }
+                        if(kontrol2>0 && kontrol2<tsayitut)
+                        {
+                            push_by_index(head,plakatut,kontrol2,aranansehir,arananbolge);
+                            tsayitut++;
+                        }
+                        if(kontrol2==0)
+                        {
+                            pushf(&head,plakatut,aranansehir,arananbolge);
+                            tsayitut++;
+
+                        }
+                        if(kontrol2==tsayitut)
+                        {
+                            push(head,plakatut,aranansehir,arananbolge);
+                            tsayitut++;
+
+                        }
+                        printf("\nSehir eklenmistir...\n");
+                    }
+                }
+                break;
+            case 2:
+                plaka_arit(head);
+                an=head;
+                printf("\nAranacak sehirin plaka kodunu ya da adini belirtiniz.\n");
+                scanf("%s",&aranansehir);
+                if(atoi(aranansehir)==NULL)
+                {
+                    for(kontrol=0;kontrol<tsayitut;kontrol++)
+                    {
+                        if(strcmp(aranansehir,an->sehir_adi)==0)
+                        {
+                            printf("\n%s sehrinin bilgileri:",an->sehir_adi);
+                            printf("\nPlaka kodu:%d", an->plaka_kodu);
+                            printf("\nSehir adi:%s",an->sehir_adi);
+                            printf("\nCografi bolge:%s",an->cografi_bolge);
+                            printf("\nKomsu sayisi:%d\n",an->komsu_sayisi);
+                            printf("Komsu bilgileri:\n");
+                            an->komsutut=an->komsu;
+                            for(int i=0;i<an->komsu_sayisi;i++)
+                            {
+                                printf("%d\t",an->komsutut->plaka_kodu);
+                                printf("%s\t",an->komsutut->sehir_adi);
+                                printf("%s\n",an->komsutut->cografi_bolge);
+                                an->komsutut=an->komsutut->next;
+                            }
+                            break;
+                        }
+                        an=an->next;
+                    }
+                    if(kontrol==tsayitut)
+                    {
+                        printf("\nAranan sehir listede yok eklemek ister misiniz?(Eklemek icin 1,baska islem icin menu numaralari.)\n");
+                        goto baslangic;
+                    }
+                }
+                else
+                {
+                    for(kontrol=0;kontrol<tsayitut;kontrol++)
+                    {
+                        if(atoi(aranansehir)==an->plaka_kodu)
+                        {
+                            printf("\n%s sehrinin bilgileri:",an->sehir_adi);
+                            printf("\nPlaka kodu:%d", an->plaka_kodu);
+                            printf("\nSehir adi:%s",an->sehir_adi);
+                            printf("\nCografi bolge:%s",an->cografi_bolge);
+                            printf("\nKomsu sayisi:%d\n",an->komsu_sayisi);
+                            printf("Komsu bilgileri:\n");
+                            an->komsutut=an->komsu;
+                            for(int i=0;i<an->komsu_sayisi;i++)
+                            {
+                                printf("%d\t",an->komsutut->plaka_kodu);
+                                printf("%s\t",an->komsutut->sehir_adi);
+                                printf("%s\n",an->komsutut->cografi_bolge);
+                                an->komsutut=an->komsutut->next;
+                            }
+                            break;
+                        }
+                        an=an->next;
+                    }
+                    if(kontrol==tsayitut)
+                    {
+                        printf("\nAranan sehir listede yok eklemek ister misiniz?(Eklemek icin 1,baska islemler icin menu numaralari.)\n");
+                        goto baslangic;
+                    }
+                }
+                break;
+            case 3:
+                an=head;
+                printf("\nKomsu kayidi silmek icin 1,Sehir silmek icin 2.\n");
+                scanf("%d",&kontrol);
+                if(kontrol==1)
+                {
+                    printf("\nHangi sehirin komsu kayidini sileceginizi belirtiniz.\n");
+                    scanf("%s",&silsehir);
+                    for(kontrol=0;kontrol<tsayitut;kontrol++)
+                    {
+                        if(strcmp(silsehir,an->sehir_adi)==0)
+                        {
+                            break;
+                        }
+                        an=an->next;
+                    }
+                    if(kontrol==tsayitut)
+                    {
+                        printf("Silinecek sehir mevcut degil.\n");
+                        break;
+                    }
+                    printf("%s sehrinde komsu kayidini silmek istediginiz sehir adini giriniz.\nSilinebilecek kayitlar:\n",silsehir);
+                    an->komsutut=an->komsu;
+                    for(int i=0;i<an->komsu_sayisi;i++)
+                    {
+                        printf("%s\n",an->komsutut->sehir_adi);
+                        an->komsutut=an->komsutut->next;
+                    }
+                    printf("\n");
+                    scanf("%s",&silkomsu);
+                    an->komsutut=an->komsu;
+                    for(kontrol2=0;kontrol2<an->komsu_sayisi;kontrol2++)
+                    {
+                        if(strcmp(silkomsu,an->komsutut->sehir_adi)==0)
+                        {
+                            break;
+                        }
+                        an->komsutut=an->komsutut->next;
+                    }
+                    if(kontrol2==an->komsu_sayisi)
+                    {
+                        printf("Silinecek komsu kayidi mevcut degil.\n");
+                        break;
+                    }
+                    remove_komsu(head,kontrol,kontrol2);
+                    an=head;
+                    for(kontrol=0;kontrol<tsayitut;kontrol++)
+                    {
+                        if(strcmp(silkomsu,an->sehir_adi)==0)
+                        {
+                            break;
+                        }
+                        an=an->next;
+                    }
+                    an->komsutut=an->komsu;
+                    for(kontrol2=0;kontrol2<an->komsu_sayisi;kontrol2++)
+                    {
+                        if(strcmp(silsehir,an->komsutut->sehir_adi)==0)
+                        {
+                            break;
+                        }
+                        an->komsutut=an->komsutut->next;
+                    }
+                    remove_komsu(head,kontrol,kontrol2);
+                    an=head;
+                    while (an != NULL)
+                    {
+                        printf("%d\t", an->plaka_kodu);
+                        printf("%s\t",an->sehir_adi);
+                        printf("%s\t",an->cografi_bolge);
+                        printf("(%d)\t",an->komsu_sayisi);
+                        an->komsutut=an->komsu;
+                        for(int i=0;i<(an->komsu_sayisi);i++)
+                        {
+                            printf("%d ",an->komsutut->plaka_kodu);
+                            an->komsutut=an->komsutut->next;
+                        }
+                        printf("\n");
+                        an = an->next;
+                    }
+                }
+                if(kontrol==2)
+                {
+                    printf("\nSilinecek sehirin adini giriniz:");
+                    scanf("%s",&silsehir);
+                    for(kontrol=0;kontrol<tsayitut;kontrol++)
+                    {
+                        if(strcmp(silsehir,an->sehir_adi)==0)
+                        {
+                            printf("%s",an->sehir_adi);
+                            break;
+                        }
+                        an=an->next;
+                    }
+                    if(kontrol==tsayitut)
+                    {
+                        printf("Silinecek sehir mevcut degil.\n");
+                        break;
+                    }
+                    kontrol3=an->komsu_sayisi;
+                    an->komsutut=an->komsu;
+                    for(int i=0;i<kontrol3;i++)
+                    {
+                        strcpy(silk[i],an->komsutut->sehir_adi);
+                        an->komsutut=an->komsutut->next;
+                    }
+                    for(int i=0;i<kontrol3;i++)
+                    {
+                        an=head;
+                        for(kontrol2=0;kontrol2<tsayitut;kontrol2++)
+                        {
+                            if(strcmp(silk[i],an->sehir_adi))
+                            {
+                                an->komsutut=an->komsu;
+                                for(int j=0;j<an->komsu_sayisi;j++)
+                                {
+                                    if(strcmp(an->komsutut->sehir_adi,silsehir)==0)
+                                    {
+                                        remove_komsu(head,kontrol2,j);
+                                        break;
+                                    }
+                                    an->komsutut=an->komsutut->next;
+                                }
+                            }
+                            an=an->next;
+                        }
+                    }
+                    remove_by_index(&head,kontrol);
+                    tsayitut=tsayitut-1;
+                    printf("\nSehir silindi...\n");
+                    an=head;
+                    while (an != NULL)
+                    {
+                        printf("%d\t", an->plaka_kodu);
+                        printf("%s\t",an->sehir_adi);
+                        printf("%s\t",an->cografi_bolge);
+                        printf("(%d)\t",an->komsu_sayisi);
+                        an->komsutut=an->komsu;
+                        for(int i=0;i<(an->komsu_sayisi);i++)
+                        {
+                            printf("%d ",an->komsutut->plaka_kodu);
+                            an->komsutut=an->komsutut->next;
+                        }
+                        printf("\n");
+                        an = an->next;
+                    }
+                }
+                break;
+            case 4:
+                an=head;
+                buyukkom=an->komsu_sayisi;
+                for(int i=0;i<tsayitut;i++)
+                {
+                    an=an->next;
+                    if(buyukkom<an->komsu_sayisi)
+                    buyukkom=an->komsu_sayisi;
+                }
+                an=head;
+                printf("Bolge bilgisi giriniz.(Ornek:MA(Marmara))\n");
+                scanf("%s",&arananbolge);
+                printf("Plaka Kodu - ");
+                printf("Sehir Adi - ");
+                printf("Cografi Bolge - ");
+                printf("Komsu Sayisi\n");
+                for(kontrol=0;kontrol<tsayitut;kontrol++)
+                {
+                    if(strcmp(arananbolge,an->cografi_bolge)==0)
+                    {
+                        printf("%d\t", an->plaka_kodu);
+                        printf("     %s\t",an->sehir_adi);
+                        printf("   %s\t",an->cografi_bolge);
+                        printf("(%d)\t",an->komsu_sayisi);
+                        printf("\n");
+                    }
+                    an=an->next;
+                }
+                break;
+            case 5:
+                an=head;
+                printf("\nKomsu sayisi kriteri belirtiniz:(Ornek:3 ve fazlasi icin '3+',3 ve azi icin '3-',3 icin '3')\n");
+                scanf("%s",&kriter);
+                if(strchr(kriter,'+')==NULL && strchr(kriter,'-')==NULL)
+                {
+                    if(atoi(kriter)>buyukkom)
+                    {
+                        printf("%d komsu sayisina sahip sehir bulunmamaktadir.",atoi(kriter));
+                        break;
+                    }
+                    printf("\n%s komsu sayisina sahip sehirlerin listesi:",kriter);
+                    for(int i=0;i<tsayitut;i++)
+                    {
+                        if(an->komsu_sayisi==atoi(kriter))
+                        {
+                            printf("\n%s-->",an->sehir_adi);
+                            an->komsutut=an->komsu;
+                            for(int d=0;d<an->komsu_sayisi;d++)
+                            {
+                                printf("|%d",an->komsutut->plaka_kodu);
+                                printf("\t%s|\t",an->komsutut->sehir_adi);
+                                an->komsutut=an->komsutut->next;
+                            }
+                        }
+                        an=an->next;
+                    }
+                }
+                if(strchr(kriter,'+')!=NULL)
+                {
+                    if(atoi(kriter)>buyukkom)
+                    {
+                        printf("%d komsu sayisina sahip sehir bulunmamaktadir.",atoi(kriter));
+                        break;
+                    }
+                    token=strtok(kriter,a);
+                    printf("\n%s komsu sayisina ve fazlasina sahip sehirlerin listesi:",kriter);
+                    for(int i=atoi(token);i<=buyukkom;i++)
+                    {
+                        an=head;
+                        printf("\n\n%d komsu sayisina sahip olan sehirler:",i);
+                        for(int j=0;j<tsayitut;j++)
+                        {
+                            if(an->komsu_sayisi==i)
+                            {
+                                printf("\n%s-->",an->sehir_adi);
+                                an->komsutut=an->komsu;
+                                for(int d=0;d<an->komsu_sayisi;d++)
+                                {
+                                    printf("|%d",an->komsutut->plaka_kodu);
+                                    printf("\t%s|\t",an->komsutut->sehir_adi);
+                                    an->komsutut=an->komsutut->next;
+                                }
+                            }
+                            an=an->next;
+                        }
+                    }
+                }
+                if(strchr(kriter,'-')!=NULL)
+                {
+                    token=strtok(kriter,e);
+                    printf("\n%s komsu sayisina ve azina sahip sehirlerin listesi:",kriter);
+                    for(int i=atoi(token);i>=0;i--)
+                    {
+                        kontrol=0;
+                        an=head;
+                        printf("\n\n%d komsu sayisina sahip olan sehirler:",i);
+                        for(int j=0;j<tsayitut;j++)
+                        {
+                            if(an->komsu_sayisi==i)
+                            {
+                                printf("\n%s-->",an->sehir_adi);
+                                an->komsutut=an->komsu;
+                                for(int d=0;d<an->komsu_sayisi;d++)
+                                {
+                                    printf("|%d",an->komsutut->plaka_kodu);
+                                    printf("\t%s|\t",an->komsutut->sehir_adi);
+                                    an->komsutut=an->komsutut->next;
+                                }
+                                kontrol++;
+                            }
+                            an=an->next;
+                        }
+                        if(kontrol==0)
+                        {
+                            printf("\n%d komsu sayisina sahip sehir bulunmamaktadir.",i);
+                            continue;
+                        }
+                    }
+                }
+                break;
+            case 6:
+                an=head;
+                kontrol=0;
+                kontrol2=1;
+                printf("\nKomsu sayisi alt kriterini belirtiniz.\n");
+                scanf("%d",&alt);
+                printf("\nKomsu sayisi ust kriterini belirtiniz.\n");
+                scanf("%d",&ust);
+                while(kontrol2!=0)
+                {
+                    printf("\nOrtak olacak komsulugu yaziniz(En az 1 tane tanimlanmalidir.):\n");
+                    scanf("%s",&ortakkom[kontrol]);
+                    kontrol++;
+                    printf("\nTanimlamayi bitirmek istiyorsaniz 0'a,devam etmek istiyorsaniz baska bir sayiya basiniz.\n");
+                    scanf("%d",&kontrol2);
+                }
+                while(alt<=ust)
+                {
+                    an=head;
+                    if(alt>buyukkom)
+                    {
+                        printf("\n%d komsu sayisina sahip sehir bulunmamaktadir.\n",alt);
+                        alt++;
+                        continue;
+                    }
+                    printf("\n%d komsu sayisina ve ilgili ortak komsuluklara sahip sehirler:\n",alt);
+                    for(int i=0;i<tsayitut;i++)
+                    {
+                        kontrol2=0;
+                        an->komsutut=an->komsu;
+                        if(an->komsu_sayisi==alt)
+                        {
+                            for(int k=0;k<an->komsu_sayisi;k++)
+                            {
+                                for(int j=0;j<kontrol;j++)
+                                {
+                                    if(strcmp(an->komsutut->sehir_adi,ortakkom[j])==0)
+                                    {
+                                        kontrol2++;
+                                    }
+                                }
+                                an->komsutut=an->komsutut->next;
+                            }
+                            if(kontrol2==kontrol)
+                            {
+                                printf("\n%s-->",an->sehir_adi);
+                                an->komsutut=an->komsu;
+                                for(int d=0;d<an->komsu_sayisi;d++)
+                                {
+                                    printf("|%d",an->komsutut->plaka_kodu);
+                                    printf("\t%s|\t",an->komsutut->sehir_adi);
+                                    an->komsutut=an->komsutut->next;
+                                }
+                            }
+                        }
+                        an=an->next;
+                    }
+                    printf("\n");
+                    alt++;
+                }
+            break;
+            case 7:
+                plaka_arit(head);
+                print_list(head);
+                exit(0);
+            break;
+            default:
+            break;
+        }
+    }
+    free(head);
+    fclose(dosya);
+    return 0;
+}
